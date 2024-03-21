@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/UmamDev/WABE/issues"
   },
-  "homepage": "https://github.com/UmamDev/WABE#readme"
+  "homepage": "https://github.com/UmamDev/WABE#readme",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0"
+  }
 }
