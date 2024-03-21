@@ -1,0 +1,22 @@
+{
+  "name": "@umamdev/wabe",
+  "version": "1.0.0",
+  "description": "wa bot evolve",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UmamDev/WABE.git"
+  },
+  "keywords": [
+    "wabot"
+  ],
+  "author": "umamdev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UmamDev/WABE/issues"
+  },
+  "homepage": "https://github.com/UmamDev/WABE#readme"
+}
