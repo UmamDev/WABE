@@ -27,6 +27,7 @@ const bot = new wabe(data)
 bot.start().then((sock) => {
   sock.ev.on("messages.upsert", m => {
     console.log(m)
+  })
 })
 
 ```
@@ -39,3 +40,17 @@ const data = {
   "logger": "silent" //pino level
 }
 ```
+
+### sending message
+
+```javascript
+// send a simple text!
+sock.sendMessage(id, { text: 'hi' })
+
+
+// send a reply messagge
+sock.sendMessage(id, { text: 'hi' }, { quoted: message })
+```
+
+
+
