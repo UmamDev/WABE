@@ -2,27 +2,39 @@ class wabe {
 	constructor(data) {
 		this.phoneNumber = data.phoneNumber;
 		this.sessionId = data.sessionId;
+		this.useStore = data.useStore;
 	}
 
 	async start() {
 		const {
 			default: makeWASocket,
-			delay,
 			fetchLatestBaileysVersion,
-			getAggregateVotesInPollMessage,
 			makeCacheableSignalKeyStore,
 			makeInMemoryStore,
 			PHONENUMBER_MCC,
-			proto,
 			useMultiFileAuthState,
-			WAMessageKey,
 			DisconnectReason,
 			Browsers,
 		} = require("@whiskeysockets/baileys");
 		const pino = require("pino");
 		const NodeCache = require("node-cache");
 		const msgRetryCounterCache = new NodeCache();
-		const P = require("pino")({
+		const useStore = this.useStore;
+		const MAIN_LOGGER = pino({
+			timestamp: () => `,"time":"${new Date().toJSON()}"`,
+		});
+
+		const logger = MAIN_LOGGER.child({});
+		logger.level = "silent";
+
+		const store = useStore ? makeInMemoryStore({ logger }) : undefined;
+		store?.readFromFile(`store-${this.sessionId}.json`);
+
+		setInterval(() => {
+			store?.writeToFile(`store-${this.sessionId}.json`);
+		}, 10000 * 6);
+
+		const P = pino({
 			level: "silent",
 		});
 		let { state, saveCreds } = await useMultiFileAuthState(this.sessionId);
@@ -30,7 +42,7 @@ class wabe {
 		const sock = await makeWASocket({
 			version,
 			logger: P,
-			printQRInTerminal: true,
+			printQRInTerminal: false,
 			browser: Browsers.ubuntu("Chrome"),
 			auth: {
 				creds: state.creds,
@@ -39,10 +51,12 @@ class wabe {
 			msgRetryCounterCache,
 		});
 
+		store?.bind(sock.ev);
+
 		sock.ev.on("creds.update", saveCreds);
 
 		if (!sock.authState.creds.registered) {
-			console.log("request pairing code");
+			console.log("Request pairing code");
 			const number = this.phoneNumber;
 			const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 			await delay(6000);
@@ -68,35 +82,68 @@ class wabe {
 	}
 }
 
-function clearMessages(m) {
-	if (m.messages[0].message?.conversation) {
-		const text = m.messages[0].message?.conversation.trim();
-		const data = {
-			remoteJid: m.messages[0].key.remoteJid,
-			fromMe: m.messages[0].key.fromMe,
-			pushName: m.messages[0].pushName,
-			message: text,
-		};
-		console.log(typeof text);
-		if (typeof text !== "undefined") {
-			return data;
-		} else {
-			return m;
+async function clearMessages(m) {
+	try {
+		if (m === "undefined") return;
+		let data;
+		if (m.message?.conversation) {
+			const text = m.message?.conversation.trim();
+			if (m.key.remoteJid.endsWith("g.us")) {
+				data = {
+					chatsFrom: "group",
+					remoteJid: m.key.remoteJid,
+					participant: {
+						fromMe: m.key.fromMe,
+						number: m.key.participant,
+						pushName: m.pushName,
+						message: text,
+					},
+				};
+			} else {
+				data = {
+					chatsFrom: "private",
+					remoteJid: m.key.remoteJid,
+					fromMe: m.key.fromMe,
+					pushName: m.pushName,
+					message: text,
+				};
+			}
+			if (typeof text !== "undefined") {
+				return data;
+			} else {
+				return m;
+			}
+		} else if (m.message?.extendedTextMessage) {
+			const text = m.message?.extendedTextMessage.text.trim();
+			if (m.key.remoteJid.endsWith("g.us")) {
+				data = {
+					chatsFrom: "group",
+					remoteJid: m.key.remoteJid,
+					participant: {
+						fromMe: m.key.fromMe,
+						number: m.key.participant,
+						pushName: m.pushName,
+						message: text,
+					},
+				};
+			} else {
+				data = {
+					chatsFrom: "private",
+					remoteJid: m.key.remoteJid,
+					fromMe: m.key.fromMe,
+					pushName: m.pushName,
+					message: text,
+				};
+			}
+			if (typeof text !== "undefined") {
+				return data;
+			} else {
+				return m;
+			}
 		}
-	} else if (m.messages[0].message?.extendedTextMessage) {
-		const text = m.messages[0].message?.extendedTextMessage.text.trim();
-		console.log(typeof text);
-		const data = {
-			remoteJid: m.messages[0].key.remoteJid,
-			fromMe: m.messages[0].key.fromMe,
-			pushName: m.messages[0].pushName,
-			message: text,
-		};
-		if (typeof text !== "undefined") {
-			return data;
-		} else {
-			return m;
-		}
+	} catch (err) {
+		console.log("Error: ", err);
+		return m;
 	}
 }
 

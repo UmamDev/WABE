@@ -1,0 +1,4 @@
+/node_modules/
+/session/
+store-session.json
+package-lock.json
