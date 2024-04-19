@@ -17,10 +17,10 @@ const { wabe } = require("@umamdev/wabe");
 ### create connection
 
 ```javascript
-const { wabe, clearMessages } = require("./index.js");
+const { wabe, clearMessages } = require("@umamdev/wabe");
 
 const data = {
-	phoneNumber: "6287845032372",
+	phoneNumber: "62xxxx",
 	sessionId: "session",
 	useStore: true,
 };
@@ -44,7 +44,7 @@ bot
 	});
 ```
 
-### configuring connection
+### Configuring connection
 
 ```javascript
 const data = {

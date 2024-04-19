@@ -21,5 +21,11 @@
   "homepage": "https://github.com/UmamDev/WABE#readme",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0"
-  }
+  },
+  "contributors": [
+    {
+      "name": "idlanyor",
+      "email": "prasbhara0604@gmail.com"
+    }
+  ]
 }
